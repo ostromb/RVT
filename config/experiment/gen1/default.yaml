@@ -8,7 +8,7 @@ training:
   max_steps: 400000
   learning_rate: 0.0002
   lr_scheduler:
-    use: True
+    use: Trued
     total_steps: ${..max_steps}
     pct_start: 0.005
     div_factor: 20

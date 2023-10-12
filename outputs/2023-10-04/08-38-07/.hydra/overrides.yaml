@@ -1,0 +1,8 @@
+- dataset=gen1
+- dataset.path=datasets/gen1
+- checkpoint=RVT/0338t4d9/checkpoints/last_epoch\=000-step\=100.ckpt
+- use_test_set=1
+- hardware.gpus=2
+- +experiment/gen1=tiny.yaml
+- batch_size.eval=11
+- model.postprocess.confidence_threshold=0.001

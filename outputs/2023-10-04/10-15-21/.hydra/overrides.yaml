@@ -1,0 +1,11 @@
+- model=rnndet
+- dataset=gen1
+- dataset.path=datasets/gen1
+- wandb.project_name=RVT
+- wandb.group_name=gen1
+- +experiment/gen1=tiny.yaml
+- hardware.gpus=[2,3]
+- batch_size.train=4
+- batch_size.eval=4
+- hardware.num_workers.train=4
+- hardware.num_workers.eval=2

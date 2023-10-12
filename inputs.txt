@@ -1,0 +1,14 @@
+----- TRAINING ------- 
+DATA_DIR=datasets/gen1
+MDL_CFG=tiny
+GPU_IDS=[2,3]
+BATCH_SIZE_PER_GPU=2
+TRAIN_WORKERS_PER_GPU=9
+EVAL_WORKERS_PER_GPU=3
+python train.py model=rnndet dataset=gen1 dataset.path=${DATA_DIR} wandb.project_name=RVT \
+wandb.group_name=gen1 +experiment/gen1="${MDL_CFG}.yaml" hardware.gpus=${GPU_IDS} \
+batch_size.train=${BATCH_SIZE_PER_GPU} batch_size.eval=${BATCH_SIZE_PER_GPU} \
+hardware.num_workers.train=${TRAIN_WORKERS_PER_GPU} hardware.num_workers.eval=${EVAL_WORKERS_PER_GPU}
+
+--- PATH ---
+export HDF5_PLUGIN_PATH=/home/ostromb/.conda/envs/rvt/lib/hdf5/plugin

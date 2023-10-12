@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# Datasets
+datasets/
+RVT/
+validation_logs/
+wandb/
+
 # Distribution / packaging
 .Python
 build/
