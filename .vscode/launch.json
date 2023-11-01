@@ -1,0 +1,20 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["model=rnndet", "dataset=gen1", "dataset.path=datasets/gen1", "wandb.project_name=RVT ",
+            "wandb.group_name=gen1", "+experiment/gen1=tiny.yaml", "hardware.gpus=[0,1]",
+            "batch_size.train=4", "batch_size.eval=4",
+            "hardware.num_workers.train=9", "hardware.num_workers.eval=3"]
+        }
+    ]
+}
