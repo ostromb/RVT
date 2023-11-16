@@ -3,6 +3,8 @@ from typing import Dict, Optional, Tuple
 import torch as th
 import torch.nn as nn
 from omegaconf import DictConfig, OmegaConf
+import norse
+import norse.torch as snn
 
 try:
     from torch import compile as th_compile
@@ -153,18 +155,24 @@ class RNNDetectorStage(nn.Module):
                                         skip_first_norm=i == 0 and self.downsample_cf2cl.output_is_normed(),
                                         attention_cfg=attention_cfg) for i in range(num_blocks)]
         self.att_blocks = nn.ModuleList(blocks)
-        self.lstm = DWSConvLSTM2d(dim=stage_dim,
-                                  dws_conv=lstm_cfg.dws_conv,
-                                  dws_conv_only_hidden=lstm_cfg.dws_conv_only_hidden,
-                                  dws_conv_kernel_size=lstm_cfg.dws_conv_kernel_size,
-                                  cell_update_dropout=lstm_cfg.get('drop_cell_update', 0))
+        # self.lstm = DWSConvLSTM2d(dim=stage_dim,
+        #                           dws_conv=lstm_cfg.dws_conv,
+        #                           dws_conv_only_hidden=lstm_cfg.dws_conv_only_hidden,
+        #                           dws_conv_kernel_size=lstm_cfg.dws_conv_kernel_size,
+        #                           cell_update_dropout=lstm_cfg.get('drop_cell_update', 0))
+        
+        self.lstm = self.create_my_awesome_lstm(th.ones(4,32,64,80).shape,stage_dim)
 
         ###### Mask Token ################
         self.mask_token = nn.Parameter(th.zeros(1, 1, 1, stage_dim),
                                        requires_grad=True) if enable_token_masking else None
         if self.mask_token is not None:
             th.nn.init.normal_(self.mask_token, std=.02)
+        
+
         ##################################
+
+
 
     def forward(self, x: th.Tensor,
                 h_and_c_previous: Optional[LstmState] = None,
@@ -177,6 +185,18 @@ class RNNDetectorStage(nn.Module):
         for blk in self.att_blocks:
             x = blk(x)
         x = nhwC_2_nChw(x)  # N H W C -> N C H W
+        # if isinstance(h_and_c_previous[1][0], tuple):
+        #     h_and_c_previous[1][0] = snn.LIBoxState(v = h_and_c_previous[1][0][0])
         h_c_tuple = self.lstm(x, h_and_c_previous)
         x = h_c_tuple[0]
-        return x, h_c_tuple
+        return x, h_c_tuple[1]
+    def create_my_awesome_lstm(self,shape, n_scale):
+        time_constants = (1 / 0.001) / snn.functional.receptive_field.temporal_scale_distribution(n_scale, max_scale=1000)
+        #time_constants = time_constants.reshape(n_scale, 1, 1).repeat(1, *shape)
+        time_constants = time_constants.reshape(n_scale, 1, 1)
+        self.time_constants = nn.Parameter(time_constants)
+        p = snn.LIBoxParameters(tau_mem_inv=self.time_constants)
+        return snn.SequentialState(
+            snn.LIBoxCell(p),
+            nn.ReLU(),
+    )

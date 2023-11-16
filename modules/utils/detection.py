@@ -6,6 +6,8 @@ import torch as th
 
 from data.genx_utils.labels import SparselyBatchedObjectLabels
 from data.utils.types import BackboneFeatures, LstmStates, DatasetSamplingMode
+import norse
+import norse.torch as snn
 
 
 class Mode(Enum):
@@ -86,10 +88,15 @@ class RNNStates:
             return inp.detach()
         if isinstance(inp, list):
             return [cls.recursive_detach(x) for x in inp]
+        if isinstance(inp, snn.LIBoxState):
+            return snn.LIBoxState(v = inp.v.detach())
         if isinstance(inp, tuple):
             return tuple(cls.recursive_detach(x) for x in inp)
         if isinstance(inp, dict):
             return {k: cls.recursive_detach(v) for k, v in inp.items()}
+        
+        if inp is None:
+            return None
         raise NotImplementedError
 
     @classmethod
@@ -106,10 +113,14 @@ class RNNStates:
             return inp
         if isinstance(inp, list):
             return [cls.recursive_reset(x, indices_or_bool_tensor=indices_or_bool_tensor) for x in inp]
+        if isinstance(inp, snn.LIBoxState):
+            return snn.LIBoxState(v = cls.recursive_reset(inp.v))
         if isinstance(inp, tuple):
             return tuple(cls.recursive_reset(x, indices_or_bool_tensor=indices_or_bool_tensor) for x in inp)
         if isinstance(inp, dict):
             return {k: cls.recursive_reset(v, indices_or_bool_tensor=indices_or_bool_tensor) for k, v in inp.items()}
+        if inp is None:
+            return None
         raise NotImplementedError
 
     def save_states_and_detach(self, worker_id: int, states: LstmStates) -> None:
